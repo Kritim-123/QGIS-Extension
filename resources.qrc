@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/new_empty_shape_file" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>
