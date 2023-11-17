@@ -2,6 +2,7 @@ import os
 from qgis.PyQt import uic
 from qgis.PyQt import QtWidgets
 from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtWidgets import QMessageBox #To show the pop-up
 import shutil
 
 
@@ -43,6 +44,15 @@ class CreateNewEmptySpeciesShapeFileDialog(QtWidgets.QDialog, FORM_CLASS):
 
         destination_path = os.path.join(destination_path, current_value)
         shutil.copytree(folder_path, destination_path)
+
+        #Showing pop-up after the file has been downloaded
+        msg = QMessageBox() # Creating an instance of the MessageBox
+        msg.setWindowTitle("Sucess!") #Setting the title of the window
+        msg.setText("You have succesfully download the file in the located folder.") # The actual message
+        msg.setIcon(QMessageBox.Information) #sets the icon of the pop-up
+        msg.setDetailedText("Go to location you previously selected to find the files.") #Gives information on where to find the files
+
+        x = msg.exec_() # To display the message
 
 
 
