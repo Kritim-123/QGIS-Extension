@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/Multiple_Shape_File" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>
