@@ -23,9 +23,11 @@
 """
 
 import os
-
 from qgis.PyQt import uic
 from qgis.PyQt import QtWidgets
+from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtWidgets import QMessageBox #To show the pop-up
+import shutil
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -36,9 +38,58 @@ class MultipleShapeFileDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, parent=None):
         """Constructor."""
         super(MultipleShapeFileDialog, self).__init__(parent)
-        # Set up the user interface from Designer through FORM_CLASS.
-        # After self.setupUi() you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
+
+        self.destination_path = "" #To carry the address of the file later
+        self.input_toolButton.clicked.connect(self.toolButtonClicked) #Connecting to a function
+
+        # Initialize the variable to store the selected file type in RadioBoxes
+        self.selected_file_type = None
+
+        #Variable to indicate that there is a heading named as internal_taxon_name
+        self.heading_exists = False
+
+        # Connect radio buttons to the custom method
+        self.point_radioButton.clicked.connect(self.radioButtonClicked)
+        self.Polygen_radioButton.clicked.connect(self.radioButtonClicked)
+
+        #Downloads a example file
+        self.pushButton.clicked.connect(self.pushButtonClicked)
+
+        #Click at the very end
+        self.button_box.accepted.connect(self.buttonBoxClicked)
+
+
+    def toolButtonClicked(self):
+        # Open a directory dialog
+        directory = QFileDialog.getExistingDirectory(self, "Select Destination Folder")
+        target_heading = "internal_taxon_name"
+
+        try:
+            with open(directory, 'r') as file:
+                first_line = file.readline()
+
+                if traget_heading in first_line:
+                    self.heading_exists = true;
+        except FileNotFoundError:
+            QMessageBox.warning(self, "No File Found. Please try again")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
+    def radioButtonClicked(self):
+        # Identify which radio button was clicked and update self.selected_file_type
+        sender = self.sender()
+        if sender == self.point_radioButton:
+            self.selected_file_type = "Point"
+            print("Point")
+        elif sender == self.Polygen_radioButton:
+            self.selected_file_type = "Polygon"
+            print("Polygen")
+
+    def pushButtonClicked(self):
+        # Use self.selected_file_type as needed, e.g., for processing the chosen file type
+        print("Selected File Type:", self.selected_file_type)
+
+    def buttonBoxClicked(self):
+        pass
+
