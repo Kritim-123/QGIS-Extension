@@ -28,10 +28,23 @@ from qgis.PyQt import QtWidgets
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtWidgets import QMessageBox #To show the pop-up
 import shutil
+import pandas as pd
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'Multiple_Shape_File_dialog_base.ui'))
+
+
+def getFileFromHeading(file_path):
+    if file_path.endswith('.csv'):
+        df = pd.read_csv(file_path, delimiter='t')
+    elif file_path.endswith(('.xls', '.xlsx')):
+        df = pd.read_excel(file_path)
+    else:
+        raise ValueError("Unsupported file type. Please provide a CSV or Excel File")
+
+    internal_taxon_elements = df['internal_taxon_name'].tolist()
+    return internal_taxon_elements
 
 
 class MultipleShapeFileDialog(QtWidgets.QDialog, FORM_CLASS):
@@ -58,6 +71,9 @@ class MultipleShapeFileDialog(QtWidgets.QDialog, FORM_CLASS):
 
         #Click at the very end
         self.button_box.accepted.connect(self.buttonBoxClicked)
+        self.target_heading_content = []
+
+
 
 
     def toolButtonClicked(self):
@@ -65,16 +81,21 @@ class MultipleShapeFileDialog(QtWidgets.QDialog, FORM_CLASS):
         directory = QFileDialog.getExistingDirectory(self, "Select Destination Folder")
         target_heading = "internal_taxon_name"
 
+
         try:
             with open(directory, 'r') as file:
                 first_line = file.readline()
 
-                if traget_heading in first_line:
-                    self.heading_exists = true;
+                if target_heading in first_line:
+                    self.heading_exists = True
+
         except FileNotFoundError:
             QMessageBox.warning(self, "No File Found. Please try again")
         except Exception as e:
             print(f"An error occurred: {e}")
+
+        if self.heading_exists:
+            target_heading_content = getFileFromHeading(directory)
 
     def radioButtonClicked(self):
         # Identify which radio button was clicked and update self.selected_file_type
