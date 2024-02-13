@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/fill_fields" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>
