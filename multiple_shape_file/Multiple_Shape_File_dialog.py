@@ -58,6 +58,7 @@ class MultipleShapeFileDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # Initialize the variable to store the selected file type in RadioBoxes
         self.selected_file_type = None
+        self.file_type_selected = False
 
         #Variable to indicate that there is a heading named as internal_taxon_name
         self.heading_exists = False
@@ -71,15 +72,34 @@ class MultipleShapeFileDialog(QtWidgets.QDialog, FORM_CLASS):
 
         #Click at the very end
         self.button_box.accepted.connect(self.buttonBoxClicked)
+
+        self.output_toolButton.clicked.connect(self.outputToolButtonClicked)
+
+        #To store all the file name from internal_taxon_name
         self.target_heading_content = []
 
+        #Destination
+        self.output_directory = ""
 
+        self.destination_found = False
+
+        self.folder_path = ""
+
+
+    def outputToolButtonClicked(self):
+        self.output_directory = QFileDialog.getExistingDirectory(self, "Select Destination Folder")
+
+        self.output_lineEdit.setText(self.output_directory)
+
+        self.destination_found = True
 
 
     def toolButtonClicked(self):
         # Open a directory dialog
-        directory = QFileDialog.getExistingDirectory(self, "Select Destination Folder")
+        directory = QFileDialog.getOpenFileName(self, "Select Destination Folder")
         target_heading = "internal_taxon_name"
+
+        self.input_lineEdit.setText(directory)
 
 
         try:
@@ -95,22 +115,53 @@ class MultipleShapeFileDialog(QtWidgets.QDialog, FORM_CLASS):
             print(f"An error occurred: {e}")
 
         if self.heading_exists:
-            target_heading_content = getFileFromHeading(directory)
+            self.target_heading_content = getFileFromHeading(directory)
 
     def radioButtonClicked(self):
         # Identify which radio button was clicked and update self.selected_file_type
+
+        current_directory = os.path.dirname(os.path.abspath(__file__))
         sender = self.sender()
         if sender == self.point_radioButton:
             self.selected_file_type = "Point"
-            print("Point")
+            self.file_type_selected = True
+            folder_name = "pointTemplate"
+            self.folder_path = os.path.join(current_directory, folder_name)
+
         elif sender == self.Polygen_radioButton:
             self.selected_file_type = "Polygon"
-            print("Polygen")
+            self.file_type_selected = True
+            folder_name = "polygonTemplate"
+            self.folder_path = os.path.join(current_directory, folder_name)
 
     def pushButtonClicked(self):
         # Use self.selected_file_type as needed, e.g., for processing the chosen file type
         print("Selected File Type:", self.selected_file_type)
 
     def buttonBoxClicked(self):
-        pass
+        if self.file_type_selected & self.destination_found:
+
+            for name in self.target_heading_content:
+                source_path = self.folder_path
+                destination_path = f"{destination_path}/{name}_{self.selected_file_type}"
+
+                try:
+                    shutil.copytree(source_path, destination_path)
+
+                except FileExistsError:
+                    print("File is already there. Skipping")
+
+            #Showing pop-up after the file has been downloaded
+            msg = QMessageBox() # Creating an instance of the MessageBox
+            msg.setWindowTitle("Sucess!") #Setting the title of the window
+            msg.setText("You have succesfully download the file in the located folder.") # The actual message
+            msg.setIcon(QMessageBox.Information) #sets the icon of the pop-up
+            msg.setDetailedText("Go to location you previously selected to find the files.") #Gives information on where to find the files
+
+        else:
+            msg = QMessageBox()
+            msg.setWindowTitle("Failed!")
+            msg.setText("There is some error. Please input valid information in necessary File")
+
+
 
